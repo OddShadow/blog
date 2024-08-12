@@ -41,6 +41,13 @@ export default defaultTheme({
       text: 'MySQL',
       link: '/mysql/事务.md',
     },
+    {
+      text: 'Others',
+      prefix: '/others/',
+      children: [
+        {text: 'frp', link: 'frp.md'},
+      ],
+    },
   ],
 
 }) as Theme
