@@ -35,7 +35,11 @@ export default defaultTheme({
     },
     {
       text: 'Java',
-      link: '/java/JUC.md',
+      prefix: '/java/',
+      children: [
+        {text: 'JUC', link: 'JUC.md'},
+        {text: 'HashMap源码', link: 'HashMap源码.md'},
+      ],
     },
     {
       text: 'MySQL',
