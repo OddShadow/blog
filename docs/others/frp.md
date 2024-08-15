@@ -18,7 +18,7 @@ FRP 主要由两个部分组成，服务端 `frps` 和 客户端 `frpc`
 ### 软件下载
 
 FRP 项目 github 地址 https://github.com/fatedier/frp  
-本文使用 0.53.2 版本，支持 windows，linux，mac 系统，https://github.com/fatedier/frp/releases/tag/v0.53.2  
+本文使用 0.59.0 版本，支持 windows，linux，mac 系统，https://github.com/fatedier/frp/releases/tag/v0.59.0  
 无论哪个版本文件目录格式都是
 ```shell
 frp
@@ -30,7 +30,7 @@ frp
 ```
 一般一台机器只作为服务端或者客户端中一个，所以可以删除不需要的执行文件和配置文件  
 老版本的 frp 使用的是 ini 格式，新版本使用的是 toml 格式，注意文件格式和参数名的变化  
-在地址 https://github.com/fatedier/frp/tree/v0.53.2/conf 可以看到 ini 和 toml 所有可配置项
+在地址 https://github.com/fatedier/frp/tree/v0.59.0/conf 可以看到 ini 和 toml 所有可配置项
 
 ## win10 远程桌面控制内网穿透
 
@@ -62,10 +62,10 @@ Android 提供了客户端，Microsoft Remote Desktop
 
 ```shell
 cd /tmp
-wget https://github.com/fatedier/frp/releases/download/v0.53.2/frp_0.53.2_linux_amd64.tar.gz
-# wget -e "https_proxy=http://192.168.1.3:7890" https://github.com/fatedier/frp/releases/download/v0.53.2/frp_0.53.2_linux_amd64.tar.gz
-tar -zxvf frp_0.53.2_linux_amd64.tar.gz
-mv frp_0.53.2_linux_amd64 /usr/local/frps
+wget https://github.com/fatedier/frp/releases/download/v0.59.0/frp_0.59.0_linux_amd64.tar.gz
+# wget -e "https_proxy=http://192.168.1.3:7890" https://github.com/fatedier/frp/releases/download/v0.59.0/frp_0.59.0_linux_amd64.tar.gz
+tar -zxvf frp_0.59.0_linux_amd64.tar.gz
+mv frp_0.59.0_linux_amd64 /usr/local/frps
 rm -f /usr/local/frps/frpc*
 ```
 
@@ -82,8 +82,8 @@ auth.token = "输入你的随机字符密钥"
 
 #### 部署客户端
 
-windows 电脑 A，下载 frp，https://github.com/fatedier/frp/releases/download/v0.53.2/frp_0.53.2_windows_amd64.zip  
-解压后放入目录，如，`D:\frp\frp_0.53.2_windows_amd64`  
+windows 电脑 A，下载 frp，https://github.com/fatedier/frp/releases/download/v0.59.0/frp_0.59.0_windows_amd64.zip  
+解压后放入目录，如，`D:\frp\frp_0.59.0_windows_amd64`  
 不需要服务端，删除，frps.exe，frps.toml  
 修改客户端配置文件 frpc.toml
 ```toml
@@ -102,7 +102,7 @@ remotePort = 50000 # 告诉服务器开放 50000 端口映射到本机 3389 端�
 
 启动客户端  
 `win + r`，输入 `cmd`  
-`cd D:\frp\frp_0.53.2_windows_amd64`  
+`cd D:\frp\frp_0.59.0_windows_amd64`  
 `./frpc -c ./frpc.toml`  
 
 #### 远程访问
@@ -128,7 +128,8 @@ auth.token = "输入你的随机字符密钥"
 
 被控客户端配置文件 frpc.toml  
 001-rdp 的配置可以删除，可以保留  
-保留的原因是如果用安卓手机控制，手机端无法部署 frpc，只能用 001-rdp 的方式
+保留的原因是如果用安卓手机控制，手机端无法部署 frpc，只能用 001-rdp 的方式  
+最新版本已经可以支持安卓
 ```toml
 serverAddr = "8.8.8.8" # 公网 IP
 serverPort = 7000 # 公网服务端端口
@@ -166,3 +167,111 @@ keepTunnelOpen = true
 ```
 控制端尝试连接  
 一台 windows `win + r` `mstsc`，输入 `127.0.0.1:50000`，输入账号密码即可连接
+
+## 可选配置项
+
+注意选择对应版本号  
+`./frpc verify -c ./frpc.toml` 验证配置文件正确性   
+`./frps verify -c ./frps.toml` 验证配置文件正确性
+
+https://github.com/fatedier/frp/blob/dev/conf/frps_full_example.toml
+
+https://github.com/fatedier/frp/blob/dev/conf/frpc_full_example.toml
+
+```toml
+# 日志输出，frpc 同理
+log.to = "./logs/frps.log" # console or real logFile path
+log.level = "info" # trace, debug, info, warn, error
+log.maxDays = 3 # 最大天数
+log.disablePrintColor = false # 控制台输出日志时是否禁用彩色输出
+```
+
+进入目录 `/usr/local/frps` 执行 `./frps -c ./frps.toml &` 即可
+
+```toml
+# 网页端 Dashboard
+webServer.addr = "127.0.0.1" # 非本机访问可以修改成 "0.0.0.0"
+webServer.port = 7500
+webServer.user = "admin" # 账号密码
+webServer.password = "admin"
+
+# prometheus 监控数据
+# 地址 http://{dashboard_addr}/metrics
+# 只支持 frps
+enablePrometheus = true 
+```
+也可以使用 systemd 管理
+
+```shell
+# /lib/systemd/system/frps.service
+[Unit]
+Description=FRP Server Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+# 注意修改路径
+ExecStart=/usr/local/frps/frps -c /usr/local/frps/frps.toml
+Restart=always
+RestartSec=20s
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```shell
+# /lib/systemd/system/frpc.service
+[Unit]
+Description=FRP Client Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+# 注意修改路径
+ExecStart=/usr/local/frp/frpc -c /usr/local/frp/frpc.toml
+Restart=always
+RestartSec=20s
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```shell
+# 如果配置成 systemd 服务，需要掌握的一些常用命令
+# 日志被 journal 代理，没找到存两份的方法，可以不用在 toml 中配置
+# 使用 systemd 启动，如果已经用 ./frps -c ./frps.toml & 启动，记得 kill
+
+systemctl status frps # 状态
+systemctl start frps # 启动
+systemctl stop frps # 停止
+systemctl enable frps # 开机自启
+systemctl disable frps # 禁止开机自启
+systemctl restart frps # 重启
+systemctl daemon-reload # 重载 frps.service 配置文件
+
+# frp 自带日志失效，被 journal 管理
+journalctl -u frps
+journalctl -u frps -f
+journalctl -u frps -r
+
+# 从某时间开始，默认时分秒 00:00:00
+journalctl -u frps --since '2000-01-01'
+journalctl -u frps -S '2000-01-01'
+journalctl -u frps --since '2000-01-01 12:01:01'
+# 截止某时间结束，默认时分秒 00:00:00
+journalctl -u frps --until '2050-01-01'
+journalctl -u frps -U '2050-01-01'
+journalctl -u frps --until '2050-01-01 12:01:01'
+# 可以不写日期，默认当天，可以一起使用，还可以用 yesterday today
+
+journalctl --disk-usage # 查看日志大小
+journalctl --vacuum-time=30d # 清理30天之前的日志
+```
+
+## windows 一般利用任务计划程序设置开机自启动
+
+有时间再补充
